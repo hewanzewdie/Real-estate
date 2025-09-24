@@ -1,17 +1,37 @@
 import { db } from '../config/firebase';
-import { collection, doc, setDoc, getDocs, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, getDocs, deleteDoc } from 'firebase/firestore';
 import { Property } from '../types/property';
+
+export const getProperties = async (): Promise<Property[]> => {
+  const snapshot = await getDocs(collection(db, 'properties'));
+  const properties: Property[] = snapshot.docs.map(
+    (doc) => ({ id: doc.id, ...doc.data() } as Property)
+  );
+
+  const invalidProperties = properties.filter((prop) =>
+    (!prop.forSale && !prop.forRent) ||
+    (prop.forSale && (prop.status === 'rented' || prop.rentPrice !== undefined)) ||
+    (prop.forRent && (prop.status === 'sold' || prop.salePrice !== undefined)) ||
+    (prop.forSale && prop.leaseTerm !== undefined)
+  );
+
+  if (invalidProperties.length > 0) {
+    throw new Error('Invalid property configuration in the list.');
+  }
+
+  return properties;
+};
 
 export const addProperty = async (property: Property): Promise<string> => {
   const invalid =
-    (!property.forSale && !property.forRent) || // Must have at least one true
-    (property.forSale && (property.status === 'rented' || property.rentPrice !== undefined)) || // Invalid if forSale with rentPrice
-    (property.forRent && (property.status === 'sold' || property.salePrice !== undefined)) || // Invalid if forRent with salePrice
-    (property.forSale && property.leaseTerm !== undefined); // Invalid if forSale with leaseTerm
+    (!property.forSale && !property.forRent) ||
+    (property.forSale && (property.status === 'rented' || property.rentPrice !== undefined)) ||
+    (property.forRent && (property.status === 'sold' || property.salePrice !== undefined)) ||
+    (property.forSale && property.leaseTerm !== undefined);
 
   if (invalid) {
     throw new Error(
-      'Invalid property configuration. For sale properties cannot have status "rented", a rentPrice, or a lease term and for rent properties cannot have status "sold" or a salePrice. At least one of forSale or forRent must be true.'
+      'Invalid property configuration. For sale properties cannot have status "rented", a rentPrice or a leaseTerm, and for rent properties cannot have status "sold" and a salePrice. At least one of forSale or forRent must be true.'
     );
   }
 
@@ -22,27 +42,6 @@ export const addProperty = async (property: Property): Promise<string> => {
   };
   await setDoc(doc(db, 'properties', newProperty.id), newProperty);
   return newProperty.id;
-};
-
-export const getProperties = async (): Promise<Property[]> => {
-  const snapshot = await getDocs(collection(db, 'properties'));
-  const properties: Property[] = snapshot.docs.map(
-    (doc) => ({ id: doc.id, ...doc.data() } as Property)
-  );
-
-  const invalidProperties = properties.filter(
-    (property) =>
-      (!property.forSale && !property.forRent) ||
-      (property.forSale && (property.status === 'rented' || property.rentPrice !== undefined)) ||
-      (property.forRent && (property.status === 'sold' || property.salePrice !== undefined)) ||
-     (property.forSale && property.leaseTerm !== undefined)
-  );
-
-  if (invalidProperties.length > 0) {
-    throw new Error('Invalid property configuration in the list.');
-  }
-
-  return properties;
 };
 
 export const getPropertyById = async (id: string): Promise<Property> => {
@@ -56,10 +55,11 @@ export const getPropertyById = async (id: string): Promise<Property> => {
   const property = { id: docSnap.id, ...docSnap.data() } as Property;
 
   const invalid =
-        (!property.forSale && !property.forRent) ||
-      (property.forSale && (property.status === 'rented' || property.rentPrice !== undefined)) ||
-      (property.forRent && (property.status === 'sold' || property.salePrice !== undefined)) ||
-     (property.forSale && property.leaseTerm !== undefined)
+
+    (!property.forSale && !property.forRent) ||
+    (property.forSale && (property.status === 'rented' || property.rentPrice !== undefined)) ||
+    (property.forRent && (property.status === 'sold' || property.salePrice !== undefined)) ||
+    (property.forSale && property.leaseTerm !== undefined);
 
   if (invalid) {
     throw new Error('Invalid property configuration.');
@@ -80,14 +80,15 @@ export const editPropertyById = async (id: string, updates: Partial<Property>): 
   const updatedProperty = { ...property, ...updates, updatedAt: new Date() };
 
   const invalid =
-        (!updatedProperty.forSale && !updatedProperty.forRent) ||
-      (updatedProperty.forSale && (updatedProperty.status === 'rented' || updatedProperty.rentPrice !== undefined)) ||
-      (updatedProperty.forRent && (updatedProperty.status === 'sold' || updatedProperty.salePrice !== undefined)) ||
-     (updatedProperty.forSale && updatedProperty.leaseTerm !== undefined);
+
+    (!updatedProperty.forSale && !updatedProperty.forRent) ||
+    (updatedProperty.forSale && (updatedProperty.status === 'rented' || updatedProperty.rentPrice !== undefined)) ||
+    (updatedProperty.forRent && (updatedProperty.status === 'sold' || updatedProperty.salePrice !== undefined)) ||
+    (updatedProperty.forSale && updatedProperty.leaseTerm !== undefined);
 
   if (invalid) {
     throw new Error(
-      'Invalid property configuration. For sale properties cannot have status "rented", a leaseTerm or a rentPrice, and for rent properties cannot have status "sold" or a salePrice. At least one of forSale or forRent must be true.'
+      'Invalid property configuration. For sale properties cannot have status "rented", a rentPrice or a leaseTerm, and for rent properties cannot have status "sold" and a salePrice. At least one of forSale or forRent must be true.'
     );
   }
 
