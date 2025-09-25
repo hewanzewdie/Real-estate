@@ -55,7 +55,6 @@ export const getPropertyById = async (id: string): Promise<Property> => {
   const property = { id: docSnap.id, ...docSnap.data() } as Property;
 
   const invalid =
-
     (!property.forSale && !property.forRent) ||
     (property.forSale && (property.status === 'rented' || property.rentPrice !== undefined)) ||
     (property.forRent && (property.status === 'sold' || property.salePrice !== undefined)) ||
@@ -80,7 +79,6 @@ export const editPropertyById = async (id: string, updates: Partial<Property>): 
   const updatedProperty = { ...property, ...updates, updatedAt: new Date() };
 
   const invalid =
-
     (!updatedProperty.forSale && !updatedProperty.forRent) ||
     (updatedProperty.forSale && (updatedProperty.status === 'rented' || updatedProperty.rentPrice !== undefined)) ||
     (updatedProperty.forRent && (updatedProperty.status === 'sold' || updatedProperty.salePrice !== undefined)) ||

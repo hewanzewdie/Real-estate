@@ -8,7 +8,6 @@ app.get('/', (req, res) => {
   res.send('Backend is up and running!');
 });
 
-
 app.use(router);
 
 const PORT = process.env.PORT || 3000;
