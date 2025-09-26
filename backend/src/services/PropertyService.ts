@@ -1,9 +1,30 @@
 import { db } from '../config/firebase';
-import { collection, doc, setDoc, getDoc, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, getDocs, deleteDoc, query, where } from 'firebase/firestore';
 import { Property } from '../types/property';
 
 export const getProperties = async (): Promise<Property[]> => {
   const snapshot = await getDocs(collection(db, 'properties'));
+  const properties: Property[] = snapshot.docs.map(
+    (doc) => ({ id: doc.id, ...doc.data() } as Property)
+  );
+
+  const invalidProperties = properties.filter((prop) =>
+    (!prop.forSale && !prop.forRent) ||
+    (prop.forSale && (prop.status === 'rented' || prop.rentPrice !== undefined)) ||
+    (prop.forRent && (prop.status === 'sold' || prop.salePrice !== undefined)) ||
+    (prop.forSale && prop.leaseTerm !== undefined)
+  );
+
+  if (invalidProperties.length > 0) {
+    throw new Error('Invalid property configuration in the list.');
+  }
+
+  return properties;
+};
+
+export const getPropertiesBySeller = async (sellerId: string): Promise<Property[]> => {
+  const q = query(collection(db, 'properties'), where('sellerId', '==', sellerId));
+  const snapshot = await getDocs(q);
   const properties: Property[] = snapshot.docs.map(
     (doc) => ({ id: doc.id, ...doc.data() } as Property)
   );

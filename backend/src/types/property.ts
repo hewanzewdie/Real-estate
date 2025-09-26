@@ -12,8 +12,8 @@ export interface Property {
   salePrice?: number;
   bedRooms: number;
   bathRooms: number;
-  area: number;
   rentPrice?: number;
   leaseTerm?: string;
-  status: 'available' | 'sold' | 'rented' | 'pending'; 
+  status: 'available' | 'sold' | 'rented' | 'pending';
+  sellerId: string;
 }
