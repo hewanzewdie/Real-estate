@@ -13,11 +13,7 @@ export const getPropertiesController = async (req: Request, res: Response) => {
 export const addPropertyController = async (req: Request, res: Response) => {
   try {
     const id = await addProperty(req.body);
-    //res.status(201).send(`Property added with ID: ${id}`);
-    res.status(201).json({
-      message: "Property added successfully",
-      id,
-    });
+    res.status(201).send(`Property added with ID: ${id}`);
   } catch (error) {
     res.status(400).send('Error: ' + (error as Error).message);
   }
