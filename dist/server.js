@@ -17,7 +17,4 @@ app.get('/', (req, res) => {
     res.send('Backend is up and running!');
 });
 app.use(PropertyRoute_1.default);
-if (process.env.NODE_ENV !== "production") {
-    app.listen(3000, () => console.log("Local server running on port 3000"));
-}
 exports.default = app;
