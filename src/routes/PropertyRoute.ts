@@ -1,12 +1,12 @@
 import express from 'express';
 import { getPropertiesController, addPropertyController, getPropertyByIdController, editPropertyByIdController, deletePropertyByIdController } from '../controllers/PropertyController';
 
-const router = express.Router();
+const propertyRouter = express.Router();
 
-router.get('/properties', getPropertiesController);
-router.post('/add-property', addPropertyController);
-router.get('/properties/:id', getPropertyByIdController);
-router.put('/properties/:id', editPropertyByIdController);
-router.delete('/properties/:id', deletePropertyByIdController);
+propertyRouter.get('/properties', getPropertiesController);
+propertyRouter.post('/add-property', addPropertyController);
+propertyRouter.get('/properties/:id', getPropertyByIdController);
+propertyRouter.put('/properties/:id', editPropertyByIdController);
+propertyRouter.delete('/properties/:id', deletePropertyByIdController);
 
-export default router;
+export default propertyRouter;
